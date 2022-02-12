@@ -6,13 +6,12 @@ const addTodo = event => {
   event.preventDefault()
 
   const inputValue = event.target.add.value.trim()
-  const inputValueContainsContent = inputValue.length
 
-  if (inputValueContainsContent) {
+  if (inputValue) {
     todosContainer.innerHTML += `
-      <li class="list-group-item d-flex justify-content-between align-items-center bg-white">
+      <li class="list-group-item d-flex justify-content-between align-items-center bg-white" data-todo="${inputValue}">
         <span>${inputValue}</span>
-        <i class="far fa-trash-alt delete"></i>
+        <i class="far fa-trash-alt" data-trash="${inputValue}"></i>
       </li>
     `
   }
@@ -22,36 +21,30 @@ const addTodo = event => {
 
 const deleteTodo = event => {
   const clickedElement = event.target
-  const isATrashCan = Array.from(clickedElement.classList).includes('delete')
+  const trashCan = clickedElement.dataset.trash
+  const todo = document.querySelector(`[data-todo="${trashCan}"]`)
 
-  if (isATrashCan) {
-    clickedElement.parentElement.remove()
+  if (trashCan) {
+    todo.remove()
   }
 }
 
-const hideTodo = inputValue => {
-  Array.from(todosContainer.children)
-    .filter(todo => !todo.textContent.toLowerCase().includes(inputValue))
-    .forEach(todo => {
-      todo.classList.remove('d-flex')
-      todo.classList.add('hidden')
-    })
-}
-
-const showTodo = inputValue => {
-  Array.from(todosContainer.children)
-    .filter(todo => todo.textContent.toLowerCase().includes(inputValue))
-    .forEach(todo => {
-      todo.classList.remove('hidden')
-      todo.classList.add('d-flex')
-    })
+const filterTodos = todos => {
+  todos.forEach(({ todo, shouldBeVisible }) => {
+    todo.classList.remove(shouldBeVisible ? 'hidden' : 'd-flex')
+    todo.classList.add(shouldBeVisible ? 'd-flex' :  'hidden')
+  })
 }
 
 const searchTodo = event => {
   const inputValue = event.target.value.trim().toLowerCase()
 
-  hideTodo(inputValue)
-  showTodo(inputValue)
+  const todos = Array.from(todosContainer.children).map(todo => ({
+    todo,
+    shouldBeVisible: todo.textContent.toLowerCase().includes(inputValue)
+  }))
+
+  filterTodos(todos)
 }
 
 formAddTodo.addEventListener('submit', addTodo)
